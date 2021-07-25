@@ -17,3 +17,4 @@ server:
 # 部署的时候需要修改这个自定义的静态文件夹或者加载另外的配置文件
 static :
   profile: E:/IDEA_project/teststatic
+  rootURL: localhost:8888/profile

@@ -22,6 +22,10 @@ public class UserHander {
     @Autowired
     private UserRepository userRepository;
 
+//    @PassToken
+//    @GetMapping("/register")
+//    public Map<>
+
     @PassToken
     @GetMapping("/login")
     public Map<String, Object> login(@RequestBody User user){
