@@ -1,24 +1,20 @@
 package com.yaxin.qiumall.utils;
 
+import com.yaxin.qiumall.entity.User;
 import org.junit.jupiter.api.Test;
 
 class JwtUtilTest {
 
     @Test
     void sign() {
-        String token = JwtUtil.sign("yaxin", "123456");
+        User u = new User();
+        u.setId(1);
+        u.setUsername("yaxin");
+        u.setPassword("123456");
+        String token = JwtUtil.sign(u);
         System.out.println(token);
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println(JwtUtil.verify(token, "yaxin", "123456"));
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println(JwtUtil.verify(token, "yaxin", "123456"));
+        System.out.println(JwtUtil.verify(token,u));
+        Integer userId = JwtUtil.getUserIdByToken(token);
+        System.out.println(userId);
     }
 }

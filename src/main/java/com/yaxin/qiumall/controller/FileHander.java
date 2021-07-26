@@ -42,17 +42,27 @@ public class FileHander {
         return path;
     }
 
+    //上传用户图像
     @PostMapping("/userimg")
-    @ResponseBody
-    public Map upFile(@RequestParam("file") MultipartFile file, @RequestHeader("token") String token){
+    @ResponseBody//返回json对象
+    public Map<String, Object> upUserImg(@RequestParam("file") MultipartFile file, @RequestHeader("token") String token){
         Map<String, Object> map = new HashMap<>();
 
+        Integer userId = JwtUtil.getUserIdByToken(token);
         String username = JwtUtil.getUserNameByToken(token);
         //这里之后要加上上传限制，每人三张照片
         String userimgPath = path+"/userimg";
         String fileName = file.getOriginalFilename();
+        String suffixName;
+        try{
+            suffixName = fileName.substring(fileName.lastIndexOf("."));
+        }catch (Exception e){
+            map.put("code", 403);
+            map.put("msg", "upload failed!");
+            return map;
+        }
 
-        String suffixName = fileName.substring(fileName.lastIndexOf("."));
+        //之后还要加上图片判断的逻辑防止上传视频等其他文件（做一个工具类）
         fileName = UUID.randomUUID().toString().replace("-","") + suffixName;
         //System.out.println("newfileName:" + fileName);
         File targetFile = new File(userimgPath);
@@ -72,8 +82,10 @@ public class FileHander {
             System.out.println(imgUrl);
 
             Userimg userimg = new Userimg();
+            userimg.setUserId(userId);
             userimg.setUsername(username);
             userimg.setUImgUrl(imgUrl);
+
             userimgRepository.save(userimg);
             map.put("code", 200);
             map.put("msg", "upload succes!");
@@ -87,4 +99,12 @@ public class FileHander {
             return map;
         }
     }
+
+//    //上传商品图像
+//    @PostMapping("/productimg")
+//    @ResponseBody
+//    public Map upPImg(@RequestParam("file") MultipartFile file, @RequestHeader("token") String token){
+//
+//    }
+
 }

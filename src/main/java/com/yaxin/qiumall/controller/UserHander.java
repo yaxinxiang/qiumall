@@ -6,10 +6,7 @@ import com.yaxin.qiumall.entity.User;
 import com.yaxin.qiumall.repository.UserRepository;
 import com.yaxin.qiumall.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +24,7 @@ public class UserHander {
 //    public Map<>
 
     @PassToken
+    @ResponseBody
     @GetMapping("/login")
     public Map<String, Object> login(@RequestBody User user){
         Map<String, Object> map = new HashMap<>();
@@ -41,7 +39,7 @@ public class UserHander {
             return map;
         }
         //验证通过后创建token
-        String token = JwtUtil.sign(query.getUsername(),query.getPassword());
+        String token = JwtUtil.sign(query);
         if(token == null){
             map.put("code", 403);
             map.put("msg", "申请token失败");
@@ -54,13 +52,20 @@ public class UserHander {
     }
 
     //本接口只做测试使用
+    @PassToken
+    @ResponseBody
     @GetMapping("/findall")
     public List<User> findall(){
         return userRepository.findAll();
     }
+
     @PassToken
+    @ResponseBody
     @GetMapping("/test")
-    public String test(){
-        return "success1";
+    public Map<String, Object> test(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", 200);
+        map.put("msg", "后端项目运行正常");
+        return map;
     }
 }

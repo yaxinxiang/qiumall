@@ -1,5 +1,6 @@
 package com.yaxin.qiumall.controller;
 
+import com.yaxin.qiumall.annotation.PassToken;
 import com.yaxin.qiumall.entity.Product;
 import com.yaxin.qiumall.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/product")
 public class ProductHander {
@@ -15,12 +19,16 @@ public class ProductHander {
     @Autowired
     ProductRepository productRepository;
 
+    @PassToken
+    @ResponseBody//返回json对象
     @GetMapping("/findall/{page}/{size}")
     public Page<Product> findall(@PathVariable("page") Integer page, @PathVariable("size") Integer size){
         Pageable pageable = PageRequest.of(page - 1, size);
         return productRepository.findAll(pageable);
     }
 
+    @PassToken
+    @ResponseBody//返回json对象
     @GetMapping("/findbyid/{id}")
     public Product findById(@PathVariable("id") Integer id){
         try{
@@ -30,24 +38,55 @@ public class ProductHander {
         }
     }
 
-    @PostMapping("/save")
-    public String save(@RequestBody Product product){
-        Product re = productRepository.save(product);
-        if(re != null){
-            return "{'tips': 添加成功,'id' : "+ re.getId() + "}";
+    //暂不用修改
+    @PassToken//之后增加token判断（加入用户的status）是否是管理员或者商家之类的才能添加商品
+    @ResponseBody//返回json对象
+    @PostMapping("/add")
+    public Map<String, Object> save(@RequestBody Product product){
+        Map<String, Object> map = new HashMap<>();
+        Product re = null;
+        try{
+            re = productRepository.save(product);
+            map.put("code",200);
+            map.put("msg","添加成功");
+            map.put("product",re);
+            return map;
+        }catch (Exception e){
+            map.put("code",403);
+            map.put("msg","添加失败");
+            return map;
         }
-        return "添加失败";
     }
 
+    @PassToken//之后增加token判断（加入用户的status）是否是管理员或者商家之类的才能修改商品
+    @ResponseBody//返回json对象
     @PostMapping("/update")
-    public String update(@RequestBody Product product){
-        if(product.getId() == null || productRepository.findById(product.getId()) == null){
-            return "数据错误";
+    public Map<String, Object> update(@RequestBody Product product){
+        Map<String, Object> map = new HashMap<>();
+        try{
+            //根据id找不到对应产品时
+            productRepository.findById(product.getId()).get();
+        }catch (Exception e){
+            map.put("code", 403);
+            map.put("msg", "数据错误，修改失败！刷新产品信息后再修改！");
+            return map;
         }
-        Product re = productRepository.save(product);
-        if(re != null){
-            return "修改成功";
+        if(product.getId() == null){
+            map.put("code", 403);
+            map.put("msg", "数据错误，修改失败！刷新产品信息后再修改！");
+            return map;
         }
-        return "修改失败";
+        Product re = null;
+        try{
+            re = productRepository.save(product);
+            map.put("code", 403);
+            map.put("msg", "存入出现问题，修改失败！");
+            return map;
+        }catch (Exception e){
+            map.put("code", 200);
+            map.put("msg", "修改成功！");
+            map.put("product", re);
+            return map;
+        }
     }
 }

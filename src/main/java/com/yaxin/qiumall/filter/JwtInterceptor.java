@@ -18,10 +18,11 @@ public class JwtInterceptor implements HandlerInterceptor {
     private UserRepository userRepository;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String token = request.getHeader("token");
         //没有映射到方法直接通过
         if(!(handler instanceof HandlerMethod)){
+            System.out.println("非映射到方法跳过认证");
             return true;
         }
 
@@ -32,30 +33,28 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (method.isAnnotationPresent(PassToken.class)) {
             PassToken passToken = method.getAnnotation(PassToken.class);
             if (passToken.required()) {
+                System.out.println("PassToken 注解跳过认证");
                 return true;
             }
         }
         //token认证
         if(token == null){
+            System.out.println("token为空!!!!!!!");
             return false;
         }
         String username = JwtUtil.getUserNameByToken(token);
         User user = userRepository.findUserByUsername(username);
         if(user == null){
+            System.out.println("token验证失败");
             return false;
         }
-        boolean result = JwtUtil.verify(token, username,user.getPassword());
+        boolean result = JwtUtil.verify(token, user);
         if(!result){
+            System.out.println("token验证失败");
             return false;
         }
         System.out.println("通过认证");
         return true;
 
-//        if(method.isAnnotationPresent(UserLoginToken.class)){
-//            UserLoginToken userLoginToken = method.getAnnotation(UserLoginToken.class);
-//            if(userLoginToken.required()){
-//
-//            }
-//        }
     }
 }
