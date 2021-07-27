@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -19,6 +20,7 @@ public class ProductHander {
     @Autowired
     ProductRepository productRepository;
 
+    //查询商品
     @PassToken
     @ResponseBody//返回json对象
     @GetMapping("/findall/{page}/{size}")
@@ -27,6 +29,7 @@ public class ProductHander {
         return productRepository.findAll(pageable);
     }
 
+    //查询单个商品
     @PassToken
     @ResponseBody//返回json对象
     @GetMapping("/findbyid/{id}")
@@ -38,7 +41,14 @@ public class ProductHander {
         }
     }
 
-    //暂不用修改
+    @PassToken
+    @ResponseBody//返回json对象
+    @GetMapping("/findbycategory")
+    public List<Product> findByCategory(@RequestParam("category") String category){
+        return productRepository.findProductsByCategory(category);
+    }
+
+    //增加商品
     @PassToken//之后增加token判断（加入用户的status）是否是管理员或者商家之类的才能添加商品
     @ResponseBody//返回json对象
     @PostMapping("/add")
@@ -58,6 +68,7 @@ public class ProductHander {
         }
     }
 
+    //修改商品
     @PassToken//之后增加token判断（加入用户的status）是否是管理员或者商家之类的才能修改商品
     @ResponseBody//返回json对象
     @PostMapping("/update")

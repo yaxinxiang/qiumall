@@ -20,11 +20,6 @@ class ProductRepositoryTest {
 
     @Test
     void save(){
-        Product product = new Product();
-        product.setName("橘子");
-        product.setPrice(10.0);
-        product.setCategory("水果");
-        Product product1 = productRepository.save(product);
-        System.out.println(product1);
+        System.out.println(productRepository.findProductsByCategory("干果"));
     }
 }
