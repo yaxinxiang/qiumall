@@ -2,7 +2,6 @@ package com.yaxin.qiumall.controller;
 
 import com.yaxin.qiumall.annotation.PassToken;
 import com.yaxin.qiumall.entity.Productimg;
-import com.yaxin.qiumall.entity.User;
 import com.yaxin.qiumall.entity.Userimg;
 import com.yaxin.qiumall.repository.ProductRepository;
 import com.yaxin.qiumall.repository.ProductimgRepository;
@@ -50,7 +49,7 @@ public class FileHander {
     //上传用户图像
     @PostMapping("/userimg")
     @ResponseBody//返回json对象
-    public Map<String, Object> upUserImg(@RequestParam("file") MultipartFile file, @RequestHeader("token") String token){
+    public Map<String, Object> upUserImg(@RequestParam("userimg") MultipartFile file, @RequestHeader("token") String token){
         Map<String, Object> map = new HashMap<>();
 
         Integer userId = JwtUtil.getUserIdByToken(token);
@@ -108,7 +107,7 @@ public class FileHander {
     //上传商品图像
     @PostMapping("/productimg")
     @ResponseBody
-    public Map<String, Object> upPImg(@RequestParam("file") MultipartFile file, @RequestParam("productid") Integer pid, @RequestHeader("token") String token){
+    public Map<String, Object> upPImg(@RequestParam("productimg") MultipartFile file, @RequestParam("pid") Integer pid, @RequestHeader("token") String token){
         Map<String, Object> map = new HashMap<>();
 
         //商家以上才能够修改商品，以后还要确定商品和卖家的关系才能够开放使用

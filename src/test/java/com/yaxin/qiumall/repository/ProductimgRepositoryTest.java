@@ -13,7 +13,7 @@ class ProductimgRepositoryTest {
 
     @Test
     void test(){
-        ;
+        System.out.println(productimgRepository.findProductimgsBypId(1));
     }
 
 }

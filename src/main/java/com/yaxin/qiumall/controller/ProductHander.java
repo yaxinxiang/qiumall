@@ -2,7 +2,9 @@ package com.yaxin.qiumall.controller;
 
 import com.yaxin.qiumall.annotation.PassToken;
 import com.yaxin.qiumall.entity.Product;
+import com.yaxin.qiumall.entity.Productimg;
 import com.yaxin.qiumall.repository.ProductRepository;
+import com.yaxin.qiumall.repository.ProductimgRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +21,9 @@ public class ProductHander {
 
     @Autowired
     ProductRepository productRepository;
+
+    @Autowired
+    ProductimgRepository productimgRepository;
 
     //查询商品
     @PassToken
@@ -41,11 +46,20 @@ public class ProductHander {
         }
     }
 
+    //根据类别查询商品
     @PassToken
     @ResponseBody//返回json对象
     @GetMapping("/findbycategory")
     public List<Product> findByCategory(@RequestParam("category") String category){
         return productRepository.findProductsByCategory(category);
+    }
+
+    //获取商品图片
+    @PassToken
+    @ResponseBody
+    @GetMapping("/selfimg")
+    public List<Productimg> getProductImg(@RequestParam("pid") Integer pid){
+        return productimgRepository.findProductimgsBypId(pid);
     }
 
     //增加商品
@@ -90,13 +104,13 @@ public class ProductHander {
         Product re = null;
         try{
             re = productRepository.save(product);
-            map.put("code", 403);
-            map.put("msg", "存入出现问题，修改失败！");
-            return map;
-        }catch (Exception e){
             map.put("code", 200);
             map.put("msg", "修改成功！");
             map.put("product", re);
+            return map;
+        }catch (Exception e){
+            map.put("code", 403);
+            map.put("msg", "存入出现问题，修改失败！");
             return map;
         }
     }
