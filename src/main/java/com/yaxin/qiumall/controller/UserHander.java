@@ -1,9 +1,10 @@
 package com.yaxin.qiumall.controller;
 
 import com.yaxin.qiumall.annotation.PassToken;
-import com.yaxin.qiumall.annotation.UserLoginToken;
 import com.yaxin.qiumall.entity.User;
+import com.yaxin.qiumall.entity.Userimg;
 import com.yaxin.qiumall.repository.UserRepository;
+import com.yaxin.qiumall.repository.UserimgRepository;
 import com.yaxin.qiumall.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,9 @@ public class UserHander {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserimgRepository userimgRepository;
 
 //    @PassToken
 //    @GetMapping("/register")
@@ -49,6 +53,22 @@ public class UserHander {
             map.put("token", token);
         }
         return map;
+    }
+
+    //获取user个人信息
+    @ResponseBody
+    @GetMapping("/selfinfo")
+    public User getSelfInfo(@RequestHeader ("token") String token){
+        Integer userId = JwtUtil.getUserIdByToken(token);
+        return userRepository.findUserById(userId);
+    }
+
+    //获取用户个人头像
+    @ResponseBody
+    @GetMapping("/selfimg")
+    public List<Userimg> getUserImg(@RequestHeader("token") String token){
+        Integer userId = JwtUtil.getUserIdByToken(token);
+        return userimgRepository.findUserimgsByUserId(userId);
     }
 
     //本接口只做测试使用

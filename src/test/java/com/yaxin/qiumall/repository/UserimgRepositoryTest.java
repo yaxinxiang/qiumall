@@ -14,6 +14,7 @@ class UserimgRepositoryTest {
     void test(){
         System.out.println(userimgRepository.findAll());
         System.out.println(userimgRepository.findUserimgsByUsername("yaxin"));
+        System.out.println(userimgRepository.findUserimgsByUserId(1));
     }
 
 }
