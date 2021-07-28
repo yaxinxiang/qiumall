@@ -12,6 +12,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class JwtInterceptor implements HandlerInterceptor {
     @Autowired
@@ -19,6 +21,10 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+
+        //记录请求的时间
+        System.out.print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + "  INFO 网络请求记录: ");
+
         String token = request.getHeader("token");
         //没有映射到方法直接通过
         if(!(handler instanceof HandlerMethod)){
