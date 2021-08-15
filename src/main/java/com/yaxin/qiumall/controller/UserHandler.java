@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
-public class UserHander {
+public class UserHandler {
 
     @Autowired
     private UserRepository userRepository;

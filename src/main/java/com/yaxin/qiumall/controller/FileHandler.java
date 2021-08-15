@@ -18,9 +18,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@RestController
+@RestController//等同于@ResponseBody + @Controller
 @RequestMapping("/upload")
-public class FileHander {
+public class FileHandler {
     @Autowired
     UserRepository userRepository;
 
@@ -48,7 +48,7 @@ public class FileHander {
 
     //上传用户图像
     @PostMapping("/userimg")
-    @ResponseBody//返回json对象
+    @ResponseBody//返回数据对象(标注了@ResController 可以省略本注解)
     public Map<String, Object> upUserImg(@RequestParam("userimg") MultipartFile file, @RequestHeader("token") String token){
         Map<String, Object> map = new HashMap<>();
 
