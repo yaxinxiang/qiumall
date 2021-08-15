@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/product")
-public class ProductHander {
+public class ProductHandler {
 
     @Autowired
     ProductRepository productRepository;

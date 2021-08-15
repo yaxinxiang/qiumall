@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/upload")
-public class FileHander {
+public class FileHandler {
     @Autowired
     UserRepository userRepository;
 
