@@ -25,6 +25,9 @@ public class FileHandler {
     UserRepository userRepository;
 
     @Autowired
+    JwtUtil jwtUtil;
+
+    @Autowired
     UserimgRepository userimgRepository;
 
     @Autowired
@@ -52,8 +55,8 @@ public class FileHandler {
     public Map<String, Object> upUserImg(@RequestParam("userimg") MultipartFile file, @RequestHeader("token") String token){
         Map<String, Object> map = new HashMap<>();
 
-        Integer userId = JwtUtil.getUserIdByToken(token);
-        String username = JwtUtil.getUserNameByToken(token);
+        Integer userId = jwtUtil.getUserIdByToken(token);
+        String username = jwtUtil.getUserNameByToken(token);
         //这里之后要加上上传限制，每人三张照片
         String userimgPath = path+"/userimg";
         String fileName = file.getOriginalFilename();
@@ -111,7 +114,7 @@ public class FileHandler {
         Map<String, Object> map = new HashMap<>();
 
         //商家以上才能够修改商品，以后还要确定商品和卖家的关系才能够开放使用
-        Integer userId = JwtUtil.getUserIdByToken(token);
+        Integer userId = jwtUtil.getUserIdByToken(token);
         if(userRepository.findUserById(userId).getStatus()<2){
             map.put("code",403);
             map.put("msg", "无权添加商品图片！请联系管理员提高权限");

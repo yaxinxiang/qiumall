@@ -1,7 +1,6 @@
 package com.yaxin.qiumall.config;
 
-import com.yaxin.qiumall.filter.JwtInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.yaxin.qiumall.interceptor.JwtInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

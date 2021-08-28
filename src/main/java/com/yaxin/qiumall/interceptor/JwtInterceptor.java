@@ -1,7 +1,6 @@
-package com.yaxin.qiumall.filter;
+package com.yaxin.qiumall.interceptor;
 
 import com.yaxin.qiumall.annotation.PassToken;
-import com.yaxin.qiumall.annotation.UserLoginToken;
 import com.yaxin.qiumall.entity.User;
 import com.yaxin.qiumall.repository.UserRepository;
 import com.yaxin.qiumall.utils.JwtUtil;
@@ -15,13 +14,18 @@ import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * 确保token有效（token验证正确，且数据库中存在）
+ */
 public class JwtInterceptor implements HandlerInterceptor {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-
         //记录请求的时间
         System.out.print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()) + "  INFO 网络请求记录: ");
 
@@ -35,7 +39,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         HandlerMethod handlerMethod=(HandlerMethod)handler;
         Method method=handlerMethod.getMethod();
 
-        //检查是否有passtoken注释，有则跳过认证
+        //检查是否有PassToken注释，有则跳过认证
         if (method.isAnnotationPresent(PassToken.class)) {
             PassToken passToken = method.getAnnotation(PassToken.class);
             if (passToken.required()) {
@@ -46,21 +50,27 @@ public class JwtInterceptor implements HandlerInterceptor {
         //token认证
         if(token == null){
             System.out.println("token为空!!!!!!!");
+            response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
             return false;
         }
-        String username = JwtUtil.getUserNameByToken(token);
+        String username = jwtUtil.getUserNameByToken(token);
         User user = userRepository.findUserByUsername(username);
         if(user == null){
             System.out.println("token验证失败");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
-        boolean result = JwtUtil.verify(token, user);
+        boolean result = jwtUtil.verify(token, user);
         if(!result){
             System.out.println("token验证失败");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
+       if(!jwtUtil.isExistInDB(token)){
+           System.out.println("用户不存在，尝试重新登陆获取新token！");
+           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+       }
         System.out.println("通过认证");
         return true;
-
     }
 }

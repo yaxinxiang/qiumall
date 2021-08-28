@@ -7,6 +7,9 @@ import com.yaxin.qiumall.repository.UserRepository;
 import com.yaxin.qiumall.repository.UserimgRepository;
 import com.yaxin.qiumall.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -17,58 +20,72 @@ import java.util.Map;
 @RequestMapping("/user")
 public class UserHandler {
 
+    HttpHeaders headers;
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private UserimgRepository userimgRepository;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
 //    @PassToken
 //    @GetMapping("/register")
 //    public Map<>
 
     @PassToken
-    @ResponseBody
     @GetMapping("/login")
-    public Map<String, Object> login(@RequestBody User user){
-        Map<String, Object> map = new HashMap<>();
+    public ResponseEntity<User> loginNew(@RequestBody User user){
+        User query;
         String username = user.getUsername();
         String phone = user.getPhone();
         String password = user.getPassword();
+
+        //账号密码不能为空
+        if((username == null && password == null) || (phone == null && password == null)){
+            //401:身份验证失败
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
         //账号密码校验
-        User query = userRepository.findUserByUsernameOrPhone(username, phone);
-        if(query == null || !query.getPassword().equals(password)){
-            map.put("code", 403);
-            map.put("msg", "账户或密码错误");
-            return map;
-        }
-        //验证通过后创建token
-        String token = JwtUtil.sign(query);
-        if(token == null){
-            map.put("code", 403);
-            map.put("msg", "申请token失败");
+        if(username != null){
+            query = userRepository.findUserByUsernameAndPassword(username, password);
         }else{
-            map.put("code", 200);
-            map.put("msg", "认证成功");
-            map.put("token", token);
+            query = userRepository.findUserByPhoneAndPassword(phone, password);
         }
-        return map;
+        if(query == null){
+            //401:身份验证失败
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        //验证通过后创建token
+        String token = jwtUtil.sign(query);
+        if(token == null){
+            //500
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        headers = new HttpHeaders();
+        headers.add("token", token);
+
+        //200
+        return new ResponseEntity<>(query, headers, HttpStatus.OK);
     }
 
     //获取user个人信息
-    @ResponseBody
     @GetMapping("/selfinfo")
-    public User getSelfInfo(@RequestHeader ("token") String token){
-        Integer userId = JwtUtil.getUserIdByToken(token);
-        return userRepository.findUserById(userId);
+    public ResponseEntity<User> getSelfInfo(@RequestHeader ("token") String token){
+        User query = jwtUtil.getDBUSerByToken(token);
+        return new ResponseEntity<>(query, HttpStatus.OK);
     }
 
     //获取用户个人头像
-    @ResponseBody
     @GetMapping("/selfimg")
-    public List<Userimg> getUserImg(@RequestHeader("token") String token){
-        Integer userId = JwtUtil.getUserIdByToken(token);
-        return userimgRepository.findUserimgsByUserId(userId);
+    public ResponseEntity<List<Userimg>> getUserImg(@RequestHeader("token") String token){
+        Integer userId = jwtUtil.getUserIdByToken(token);
+        return new ResponseEntity<>(userimgRepository.findUserimgsByUserId(userId), HttpStatus.OK);
     }
 
     //本接口只做测试使用
@@ -84,7 +101,6 @@ public class UserHandler {
     @GetMapping("/test")
     public Map<String, Object> test(){
         Map<String, Object> map = new HashMap<>();
-        map.put("code", 200);
         map.put("msg", "后端项目运行正常");
         return map;
     }
