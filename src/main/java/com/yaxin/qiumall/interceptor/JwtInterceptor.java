@@ -10,6 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -50,25 +51,41 @@ public class JwtInterceptor implements HandlerInterceptor {
         //token认证
         if(token == null){
             System.out.println("token为空!!!!!!!");
-            response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            try {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token为空!");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return false;
         }
         String username = jwtUtil.getUserNameByToken(token);
         User user = userRepository.findUserByUsername(username);
         if(user == null){
             System.out.println("token验证失败");
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            try {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token验证失败!");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return false;
         }
         boolean result = jwtUtil.verify(token, user);
         if(!result){
             System.out.println("token验证失败");
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            try{
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token验证失败!");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
             return false;
         }
        if(!jwtUtil.isExistInDB(token)){
            System.out.println("用户不存在，尝试重新登陆获取新token！");
-           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+           try {
+               response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "用户不存在，尝试重新登陆获取新token!");
+           } catch (IOException e) {
+               e.printStackTrace();
+           }
        }
         System.out.println("通过认证");
         return true;
