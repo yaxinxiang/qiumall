@@ -10,6 +10,8 @@ import com.yaxin.qiumall.repository.UserimgRepository;
 import com.yaxin.qiumall.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,10 +53,8 @@ public class FileHandler {
 
     //上传用户图像
     @PostMapping("/userimg")
-    @ResponseBody//返回数据对象(标注了@ResController 可以省略本注解)
-    public Map<String, Object> upUserImg(@RequestParam("userimg") MultipartFile file, @RequestHeader("token") String token){
-        Map<String, Object> map = new HashMap<>();
-
+    public ResponseEntity<String> upUserImg(@RequestParam("userimg") MultipartFile file, @RequestHeader("token") String token){
+        String msg = null;
         Integer userId = jwtUtil.getUserIdByToken(token);
         String username = jwtUtil.getUserNameByToken(token);
         //这里之后要加上上传限制，每人三张照片
@@ -64,9 +64,8 @@ public class FileHandler {
         try{
             suffixName = fileName.substring(fileName.lastIndexOf("."));
         }catch (Exception e){
-            map.put("code", 403);
-            map.put("msg", "upload failed!");
-            return map;
+            msg = "upload failed!";
+            return new ResponseEntity<>(msg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         //之后还要加上图片判断的逻辑防止上传视频等其他文件（做一个工具类）
@@ -94,31 +93,27 @@ public class FileHandler {
             userimg.setUImgUrl(imgUrl);
 
             userimgRepository.save(userimg);
-            map.put("code", 200);
-            map.put("msg", "upload succes!");
-            map.put("userimg", userimg);
-            return map;
+            msg = "upload succes!";
+            return new ResponseEntity<>(msg, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             //System.out.println("执行失败");
-            map.put("code", 403);
-            map.put("msg", "upload failed!");
-            return map;
+            msg = "upload failed!";
+            return new ResponseEntity<>(msg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     //上传商品图像
     @PostMapping("/productimg")
     @ResponseBody
-    public Map<String, Object> upPImg(@RequestParam("productimg") MultipartFile file, @RequestParam("pid") Integer pid, @RequestHeader("token") String token){
-        Map<String, Object> map = new HashMap<>();
-
+    public ResponseEntity<String> upPImg(@RequestParam("productimg") MultipartFile file, @RequestParam("pid") Integer pid, @RequestHeader("token") String token){
+        String msg = null;
         //商家以上才能够修改商品，以后还要确定商品和卖家的关系才能够开放使用
         Integer userId = jwtUtil.getUserIdByToken(token);
         if(userRepository.findUserById(userId).getStatus()<2){
-            map.put("code",403);
-            map.put("msg", "无权添加商品图片！请联系管理员提高权限");
-            return map;
+            //403
+            msg = "无权添加商品图片！请联系管理员提高权限";
+            return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
         }
 
         String productimgPath = path+"/productimg";
@@ -127,9 +122,9 @@ public class FileHandler {
         try{
             suffixName = fileName.substring(fileName.lastIndexOf("."));
         }catch (Exception e){
-            map.put("code", 403);
-            map.put("msg", "upload failed!");
-            return map;
+            //500: 内部错误
+            msg = "服务器内部错误";
+            return new ResponseEntity<>(msg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         //之后还要加上图片判断的逻辑防止上传视频等其他文件（做一个工具类）
@@ -157,17 +152,14 @@ public class FileHandler {
             productimg.setName(productRepository.findById(pid).get().getName());
             productimg.setPImgUrl(imgUrl);
             productimgRepository.save(productimg);
-            map.put("code", 200);
-            map.put("msg", "upload succes!");
-            map.put("productimg", productimg);
-            return map;
-
+            msg = "upload succes!";
+            return new ResponseEntity<>(msg, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             //System.out.println("执行失败");
-            map.put("code", 403);
-            map.put("msg", "upload failed!");
-            return map;
+            //500: 内部错误
+            msg = "服务器内部错误";
+            return new ResponseEntity<>(msg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
