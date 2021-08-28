@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -27,58 +29,53 @@ public class ProductHandler {
 
     //查询商品
     @PassToken
-    @ResponseBody//返回json对象
     @GetMapping("/findall/{page}/{size}")
-    public Page<Product> findall(@PathVariable("page") Integer page, @PathVariable("size") Integer size){
+    public ResponseEntity<Page<Product>> findall(@PathVariable("page") Integer page, @PathVariable("size") Integer size){
         Pageable pageable = PageRequest.of(page - 1, size);
-        return productRepository.findAll(pageable);
+        return new ResponseEntity<>(productRepository.findAll(pageable), HttpStatus.OK);
     }
 
     //查询单个商品
     @PassToken
-    @ResponseBody//返回json对象
     @GetMapping("/findbyid/{id}")
-    public Product findById(@PathVariable("id") Integer id){
+    public ResponseEntity<Product> findById(@PathVariable("id") Integer id){
         try{
-            return productRepository.findById(id).get();
+            return new ResponseEntity<>(productRepository.findById(id).get(), HttpStatus.OK);
         }catch (Exception e){
-            return null;
+            //406 id 错误
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
     }
 
     //根据类别查询商品
     @PassToken
-    @ResponseBody//返回json对象
     @GetMapping("/findbycategory")
-    public List<Product> findByCategory(@RequestParam("category") String category){
-        return productRepository.findProductsByCategory(category);
+    public ResponseEntity<List<Product>> findByCategory(@RequestParam("category") String category){
+        return new ResponseEntity<>(productRepository.findProductsByCategory(category), HttpStatus.OK);
     }
 
     //获取商品图片
     @PassToken
-    @ResponseBody
     @GetMapping("/selfimg")
-    public List<Productimg> getProductImg(@RequestParam("pid") Integer pid){
-        return productimgRepository.findProductimgsBypId(pid);
+    public ResponseEntity<List<Productimg>> getProductImg(@RequestParam("pid") Integer pid){
+        return new ResponseEntity<>(productimgRepository.findProductimgsBypId(pid), HttpStatus.OK);
     }
 
     //增加商品
     @PassToken//之后增加token判断（加入用户的status）是否是管理员或者商家之类的才能添加商品
     @ResponseBody//返回json对象
     @PostMapping("/add")
-    public Map<String, Object> save(@RequestBody Product product){
-        Map<String, Object> map = new HashMap<>();
+    public ResponseEntity<String> save(@RequestBody Product product){
+        String msg = null;
         Product re = null;
         try{
             re = productRepository.save(product);
-            map.put("code",200);
-            map.put("msg","添加成功");
-            map.put("product",re);
-            return map;
+            msg = "添加成功";
+            return new ResponseEntity<>(msg, HttpStatus.OK);
         }catch (Exception e){
-            map.put("code",403);
-            map.put("msg","添加失败");
-            return map;
+            //500
+            msg = "添加失败";
+            return new ResponseEntity<>(msg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -86,32 +83,27 @@ public class ProductHandler {
     @PassToken//之后增加token判断（加入用户的status）是否是管理员或者商家之类的才能修改商品
     @ResponseBody//返回json对象
     @PostMapping("/update")
-    public Map<String, Object> update(@RequestBody Product product){
-        Map<String, Object> map = new HashMap<>();
+    public ResponseEntity<String> update(@RequestBody Product product){
+        String msg = null;
         try{
             //根据id找不到对应产品时
             productRepository.findById(product.getId()).get();
         }catch (Exception e){
-            map.put("code", 403);
-            map.put("msg", "数据错误，修改失败！刷新产品信息后再修改！");
-            return map;
+            msg = "数据错误，修改失败！刷新产品信息后再修改！";
+            return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
         }
         if(product.getId() == null){
-            map.put("code", 403);
-            map.put("msg", "数据错误，修改失败！刷新产品信息后再修改！");
-            return map;
+            msg = "数据错误，修改失败！刷新产品信息后再修改！";
+            return new ResponseEntity<>(msg, HttpStatus.FORBIDDEN);
         }
         Product re = null;
         try{
             re = productRepository.save(product);
-            map.put("code", 200);
-            map.put("msg", "修改成功！");
-            map.put("product", re);
-            return map;
+            msg = "修改成功！";
+            return new ResponseEntity<>(msg, HttpStatus.OK);
         }catch (Exception e){
-            map.put("code", 403);
-            map.put("msg", "存入出现问题，修改失败！");
-            return map;
+            msg = "存入出现问题，修改失败！";
+            return new ResponseEntity<>(msg, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
